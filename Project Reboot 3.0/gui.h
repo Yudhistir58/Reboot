@@ -42,6 +42,7 @@
 #include "BGA.h"
 #include "vendingmachine.h"
 #include "die.h"
+#include "commands.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -708,6 +709,227 @@ static inline void MainUI()
 					FString cmd = aa;
 
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
+				}
+
+				if (ImGui::Button("Grant Items"))
+				{
+					const int grantedItemCount = 12;
+					const char* ItemToGrantEveryone [grantedItemCount] =
+					{
+						"WID_Assault_AutoHigh_Athena_VR_Ore_T03",
+						"WID_Shotgun_Standard_Athena_UC_Ore_T03",
+						"Athena_PurpleStuff",
+						"Athena_ShieldSmall",
+						"WID_Sniper_NoScope_Athena_R_Ore_T03",
+						"AthenaAmmoDataShells",
+						"AthenaAmmoDataBulletsHeavy",
+						"AthenaAmmoDataBulletsMedium",
+						"AthenaAmmoDataBulletsLight",
+						"WoodItemData",
+						"StoneItemData",
+						"MetalItemData"
+					};
+					
+					const int noOfItemsPerGrantedItem[grantedItemCount] =
+					{ 
+						1, //WID_Assault_AutoHigh_Athena_VR_Ore_T03
+						1, //WID_Shotgun_Standard_Athena_UC_Ore_T03
+						1, //Athena_PurpleStuff
+						1, //Athena_ShieldSmall
+						1, //WID_Sniper_NoScope_Athena_R_Ore_T03
+						20,//AthenaAmmoDataShells
+						20,//AthenaAmmoDataBulletsHeavy
+						60,//AthenaAmmoDataBulletsMedium
+						60,//AthenaAmmoDataBulletsLight
+						30,//Wood
+						30,//Stone
+						30 //Metal
+					};
+					
+					for (int p = 0; p < grantedItemCount; p++)
+					{
+						auto ItemDefinition = FindObject<UFortItemDefinition>(ItemToGrantEveryone[p], nullptr, ANY_PACKAGE);
+
+						if (ItemDefinition)
+						{
+							static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+							auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+							auto& ClientConnections = WorldNetDriver->GetClientConnections();
+
+							for (int i = 0; i < ClientConnections.Num(); i++)
+							{
+								auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+								if (!PlayerController->IsValidLowLevel())
+									continue;
+
+								auto WorldInventory = PlayerController->GetWorldInventory();
+
+								if (!WorldInventory->IsValidLowLevel())
+									continue;
+
+								bool bShouldUpdate = false;
+								WorldInventory->AddItem(ItemDefinition, &bShouldUpdate, noOfItemsPerGrantedItem[p]);
+
+								if (bShouldUpdate)
+									WorldInventory->Update();
+							}
+						}
+						else
+						{
+							ItemToGrantEveryone[p] = "";
+							LOG_WARN(LogUI, "Invalid Item Definition!");
+						}
+					}
+				}
+
+				if (ImGui::Button("Change Loadouts"))
+				{
+					const int skinsNo = 60;
+					const int femSkinsNo = 35;
+					const char* Skins[skinsNo] =
+					{ "CID_027_Athena_Commando_F",
+					"CID_021_Athena_Commando_F",
+					"CID_023_Athena_Commando_F",
+					"CID_028_Athena_Commando_F",
+					"CID_029_Athena_Commando_F_Halloween",
+					"CID_030_Athena_Commando_M_Halloween",
+					"CID_031_Athena_Commando_M_Retro",
+					"CID_032_Athena_Commando_M_Medieval",
+					"CID_033_Athena_Commando_F_Medieval",
+					"CID_034_Athena_Commando_F_Medieval",
+					"CID_035_Athena_Commando_M_Medieval",
+					"CID_039_Athena_Commando_F_Disco",
+					"CID_043_Athena_Commando_F_Stealth",
+					"CID_044_Athena_Commando_F_SciPop",
+					"CID_046_Athena_Commando_F_HolidaySweater",
+					"CID_047_Athena_Commando_F_HolidayReindeer",
+					"CID_048_Athena_Commando_F_HolidayGingerbread",
+					"CID_049_Athena_Commando_M_HolidayGingerbread",
+					"CID_051_Athena_Commando_M_HolidayElf",
+					"CID_069_Athena_Commando_F_PinkBear",
+					"CID_070_Athena_Commando_M_Cupid",
+					"CID_071_Athena_Commando_M_Wukong",
+					"CID_072_Athena_Commando_M_Scout",
+					"CID_074_Athena_Commando_F_Stripe",
+					"CID_080_Athena_Commando_M_Space",
+					"CID_081_Athena_Commando_F_Space",
+					"CID_082_Athena_Commando_M_Scavenger",
+					"CID_083_Athena_Commando_F_Tactical",
+					"CID_084_Athena_Commando_M_Assassin",
+					"CID_093_Athena_Commando_M_Dinosaur",
+					"CID_097_Athena_Commando_F_RockerPunk",
+					"CID_098_Athena_Commando_F_StPatty",
+					"CID_102_Athena_Commando_M_Raven",
+					"CID_105_Athena_Commando_F_SpaceBlack",
+					"CID_116_Athena_Commando_M_CarbideBlack",
+					"CID_115_Athena_Commando_M_CarbideBlue",
+					"CID_113_Athena_Commando_M_BlueAce",
+					"CID_118_Athena_Commando_F_Valor",
+					"CID_119_Athena_Commando_F_Candy",
+					"CID_130_Athena_Commando_M_Merman",
+					"CID_135_Athena_Commando_F_Jailbird",
+					"CID_137_Athena_Commando_F_StreetBasketball",
+					"CID_140_Athena_Commando_M_Visitor",
+					"CID_155_Athena_Commando_F_Gumshoe",
+					"CID_161_Athena_Commando_M_Drift"
+					"CID_170_Athena_Commando_F_Luchador",
+					"CID_173_Athena_Commando_F_StarfishUniform",
+					"CID_187_Athena_Commando_F_FuzzyBearPanda",
+					"CID_190_Athena_Commando_M_StreetRacerWhite",
+					"CID_192_Athena_Commando_M_Hippie",
+					"CID_202_Athena_Commando_F_DesertOps",
+					"CID_206_Athena_Commando_M_Bling",
+					"CID_226_Athena_Commando_F_Octoberfest",
+					"CID_227_Athena_Commando_F_Vampire",
+					"CID_230_Athena_Commando_M_Werewolf",
+					"CID_237_Athena_Commando_F_Cowgirl",
+					"CID_245_Athena_Commando_F_DurrburgerPjs",
+					"CID_246_Athena_Commando_F_Grave",
+					"CID_248_Athena_Commando_M_BlackWidow",
+					"CID_260_Athena_Commando_F_StreetOps",
+					"CID_233_Athena_Commando_M_FortniteDJ"};
+					
+					const char* FemSkins[femSkinsNo] =
+					{ "CID_027_Athena_Commando_F",
+					"CID_021_Athena_Commando_F",
+					"CID_023_Athena_Commando_F",
+					"CID_028_Athena_Commando_F",
+					"CID_029_Athena_Commando_F_Halloween",
+					"CID_033_Athena_Commando_F_Medieval",
+					"CID_034_Athena_Commando_F_Medieval",
+					"CID_039_Athena_Commando_F_Disco",
+					"CID_043_Athena_Commando_F_Stealth",
+					"CID_044_Athena_Commando_F_SciPop",
+					"CID_046_Athena_Commando_F_HolidaySweater",
+					"CID_047_Athena_Commando_F_HolidayReindeer",
+					"CID_048_Athena_Commando_F_HolidayGingerbread",
+					"CID_069_Athena_Commando_F_PinkBear",
+					"CID_074_Athena_Commando_F_Stripe",
+					"CID_081_Athena_Commando_F_Space",
+					"CID_083_Athena_Commando_F_Tactical",
+					"CID_097_Athena_Commando_F_RockerPunk",
+					"CID_098_Athena_Commando_F_StPatty",
+					"CID_105_Athena_Commando_F_SpaceBlack",
+					"CID_118_Athena_Commando_F_Valor",
+					"CID_119_Athena_Commando_F_Candy",
+					"CID_135_Athena_Commando_F_Jailbird",
+					"CID_137_Athena_Commando_F_StreetBasketball",
+					"CID_155_Athena_Commando_F_Gumshoe",
+					"CID_170_Athena_Commando_F_Luchador",
+					"CID_173_Athena_Commando_F_StarfishUniform",
+					"CID_187_Athena_Commando_F_FuzzyBearPanda",
+					"CID_202_Athena_Commando_F_DesertOps",
+					"CID_226_Athena_Commando_F_Octoberfest",
+					"CID_227_Athena_Commando_F_Vampire",
+					"CID_237_Athena_Commando_F_Cowgirl",
+					"CID_245_Athena_Commando_F_DurrburgerPjs",
+					"CID_246_Athena_Commando_F_Grave",
+					"CID_260_Athena_Commando_F_StreetOps"};
+
+					static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+					auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+					auto& ClientConnections = WorldNetDriver->GetClientConnections();
+					srand((unsigned)time(0));
+					for (int i = 0; i < ClientConnections.Num(); i++)
+					{
+						auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+						if (!PlayerController->IsValidLowLevel())
+							continue;
+
+						auto WorldInventory = PlayerController->GetWorldInventory();
+
+						if (!WorldInventory->IsValidLowLevel())
+							continue;
+
+						auto PlayerState = Cast<AFortPlayerState>(PlayerController->GetPlayerState());
+
+						if (!PlayerState) // ???
+						{
+							return;
+						}
+
+						auto Pawn = Cast<AFortPlayerPawn>(PlayerController->GetMyFortPawn());
+						std::string CIDStr;
+						std::string PlayerNames;
+						int random = (rand() % 60);
+						CIDStr = Skins[random];
+						
+						auto CIDDef = FindObject(CIDStr, nullptr, ANY_PACKAGE);					
+
+						if (!CIDDef)
+						{
+							return;
+						}
+
+						LOG_INFO(LogDev, "Applying {}", CIDDef->GetFullName());
+
+						if (!ApplyCID(Pawn, CIDDef))
+						{
+							return;
+						}
+					}
 				}
 
 				/* if (ImGui::Button("Spawn BGAs"))
