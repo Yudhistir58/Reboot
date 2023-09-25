@@ -66,7 +66,7 @@
 
 extern inline int StartReverseZonePhase = 7;
 extern inline int EndReverseZonePhase = 5;
-extern inline float StartingShield = 0;
+extern inline float StartingShield = 50;
 extern inline bool bEnableReverseZone = false;
 extern inline int AmountOfPlayersWhenBusStart = 0; 
 extern inline bool bHandleDeath = true;
@@ -88,7 +88,7 @@ extern inline int AmountOfBotsToSpawn = 0;
 extern inline bool bEnableRebooting = false;
 extern inline bool bEngineDebugLogs = false;
 extern inline bool bStartedBus = false;
-extern inline int AmountOfHealthSiphon = 0;
+extern inline int AmountOfHealthSiphon = 50;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
